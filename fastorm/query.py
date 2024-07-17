@@ -4,7 +4,12 @@ import inspect
 from typing import List, Any, TypeVar, Generic, Union
 
 from luckydonaldUtils.logger import logging
-from pydantic.fields import Undefined, UndefinedType
+
+try:
+    from pydantic.fields import Undefined, UndefinedType
+except ImportError:
+    from pydantic.v1.fields import Undefined, UndefinedType
+# end try
 
 from .compat import is_typehint
 

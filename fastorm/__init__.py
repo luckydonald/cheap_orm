@@ -37,10 +37,17 @@ from luckydonaldUtils.exceptions import assert_type_or_raise
 from luckydonaldUtils.logger import logging
 from luckydonaldUtils.typing import JSONType
 
-from pydantic import BaseModel
-from pydantic.main import ModelMetaclass
-from pydantic.fields import ModelField, UndefinedType, Undefined, Field, PrivateAttr
-from pydantic.typing import NoArgAnyCallable, resolve_annotations
+try:
+    from pydantic.main import ModelMetaclass
+    from pydantic.fields import ModelField, UndefinedType, Undefined, Field, PrivateAttr
+    from pydantic.typing import NoArgAnyCallable, resolve_annotations
+except ImportError:
+    from pydantic.v1 import BaseModel
+    from pydantic.v1.main import ModelMetaclass
+    # from pydantic._internal._model_construction import ModelMetaclass
+    from pydantic.v1.fields import ModelField, UndefinedType, Undefined, Field, PrivateAttr
+    from pydantic.v1.typing import NoArgAnyCallable, resolve_annotations
+# end try
 from typeguard import check_type
 
 from asyncpg import Connection, Pool, Record

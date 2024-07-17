@@ -5,7 +5,12 @@ __author__ = 'luckydonald'
 import inspect
 import sys
 from typing import Any, Union, Dict, Type
-from pydantic.fields import ModelField
+try:
+    from pydantic.fields import ModelField
+except ImportError:
+    from pydantic.v1.fields import ModelField
+# end try
+
 
 
 TYPEHINT_TYPE = Union[Type, ModelField]

@@ -3,7 +3,11 @@
 from dataclasses import dataclass
 import typing
 
-import pydantic.fields
+try:
+    from pydantic.fields import ModelField, FieldInfo
+except ImportError:
+    from pydantic.v1.fields import ModelField, FieldInfo
+# end try
 from luckydonaldUtils.logger import logging
 
 __author__ = 'luckydonald'
@@ -27,7 +31,7 @@ def __iter__(self):
 FIELD_REFERENCE_TYPE = typing.TypeVar("FIELD_REFERENCE_TYPE")
 
 FIELD_REFERENCE_ITEM_WITH_TYPE = typing.Union[type, typing.Type['FastORM']]   # the FIELD_REFERENCE_TYPE of TYPE type()
-FIELD_REFERENCE_ITEM_WITH_TYPE_HINT = pydantic.fields.FieldInfo  # the FIELD_REFERENCE_TYPE of TYPE pydantic.typehint
+FIELD_REFERENCE_ITEM_WITH_TYPE_HINT = FieldInfo  # the FIELD_REFERENCE_TYPE of TYPE pydantic.typehint
 
 
 @dataclass
@@ -116,7 +120,7 @@ class SqlFieldMeta(typing.Generic[SQL_FIELD_META_VALUE_TYPE]):
     sql_name: str
     field_name: str
     type_: FieldInfo[typing.Union[typing.Type]]
-    field: FieldInfo[pydantic.fields.ModelField]
+    field: FieldInfo[ModelField]
     value: SQL_FIELD_META_VALUE_TYPE
 
     def __str__(self):
