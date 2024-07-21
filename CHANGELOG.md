@@ -15,6 +15,10 @@
 - ~~Added sync version of the client~~
 
 # Not yet released
+- nothing yet
+
+# v0.0.17
+-  🔨 Work around for `pydantic` version` 2` being a thing. We now specify it to use  `pydantic.v1` (if available, otherwise we assume it still is v1).
 
 # v0.0.16
 - 🔨 Fixed a lot more stuff to make it now work quite nicely with FastAPI.

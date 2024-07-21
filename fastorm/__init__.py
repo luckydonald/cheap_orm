@@ -3,7 +3,7 @@
 
 """FastORM framework, easy to learn, fast to code"""
 __author__ = 'luckydonald'
-__version__ = "0.0.16"
+__version__ = "0.0.17"
 __all__ = [
     # meta:
     '__author__', '__version__',
