@@ -624,7 +624,7 @@ class _BaseFastORM(BaseModel):
                     # end if
                     # so we check if that resolving was successful, or the user manually resolved it beforehand.
                     if not type_hint.outer_type_.__forward_evaluated__:
-                        raise AssertionError(f'Unevaluated ForwardRef. Try to call {cls.__name__}.update_forward_refs() after the referenced class ({type_hint.outer_type_.__forward_arg__}) it defined.')
+                        raise AssertionError(f'Unevaluated ForwardRef for attribute {long_key!r}. Try to call {cls.__name__}.update_forward_refs() after the referenced class ({type_hint.outer_type_.__forward_arg__}) it defined.')
                     # end if
                     if new_type == type_hint.type_:
                         logger.debug('Case with the unions?')
