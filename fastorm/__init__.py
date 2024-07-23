@@ -38,6 +38,7 @@ from luckydonaldUtils.logger import logging
 from luckydonaldUtils.typing import JSONType
 
 try:
+    from pydantic import BaseModel
     from pydantic.main import ModelMetaclass
     from pydantic.fields import ModelField, UndefinedType, Undefined, Field, PrivateAttr
     from pydantic.typing import NoArgAnyCallable, resolve_annotations
