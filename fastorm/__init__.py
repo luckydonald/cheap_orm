@@ -16,7 +16,6 @@ __all__ = [
 import ipaddress
 import builtins
 import datetime
-import asyncpg
 import decimal
 import typing
 import types
@@ -32,6 +31,8 @@ try:
 except (ImportError, ModuleNotFoundError):
     psycopg2 = None
 # end try
+
+from sqlmodel import Field, Session
 
 from luckydonaldUtils.exceptions import assert_type_or_raise
 from luckydonaldUtils.logger import logging
@@ -49,8 +50,6 @@ except ImportError:
     from pydantic.v1.typing import NoArgAnyCallable, resolve_annotations
 # end try
 from typeguard import check_type
-
-from asyncpg import Connection, Pool, Record
 
 from .classes import FieldInfo, FieldItem, SqlFieldMeta
 from .compat import check_is_new_union_type, TYPEHINT_TYPE, check_is_generic_alias, check_is_annotated_type, check_is_typing_union_type
@@ -1107,7 +1106,7 @@ class _BaseFastORM(BaseModel):
     # end def
 
     @classmethod
-    async def get(cls: Union[Type[CLS_TYPE], 'FastORM'], conn: Connection, **kwargs) -> Optional[CLS_TYPE]:
+    async def get(cls: Union[Type[CLS_TYPE], 'FastORM'], conn: Session, **kwargs) -> Optional[CLS_TYPE]:
         """
         Retrieves a single Database element. Error if there are more matching ones.
         Like `.select(…)` but returns `None` for no matches, the match itself or an error if it's more than one row.
@@ -1125,7 +1124,7 @@ class _BaseFastORM(BaseModel):
     # end def
 
     @classmethod
-    async def select(cls: Union[Type[CLS_TYPE], 'FastORM'], conn: Connection, **kwargs) -> List[CLS_TYPE]:
+    async def select(cls: Union[Type[CLS_TYPE], 'FastORM'], conn: Session, **kwargs) -> List[CLS_TYPE]:
         """
         Get's multiple ones.
         :param conn:
@@ -1515,7 +1514,7 @@ class _BaseFastORM(BaseModel):
     # end def
 
     async def insert(
-        self: Union[CLS_TYPE, "_BaseFastORM"], conn: Connection, *,
+        self: Union[CLS_TYPE, "_BaseFastORM"], conn: Session, *,
         ignore_setting_automatic_fields: Optional[bool] = None,
         upsert_on_conflict: Union[List[str], bool] = False,
         write_back_automatic_fields: bool = True,
@@ -1649,7 +1648,7 @@ class _BaseFastORM(BaseModel):
         return bool(self.get_changes())
     # end if
 
-    async def update(self, conn: Connection) -> None:
+    async def update(self, conn: Session) -> None:
         """
         Update the made changes to the database.
         Only fields with changed values will be updated in the database.
@@ -1712,7 +1711,7 @@ class _BaseFastORM(BaseModel):
         return (sql, *where_values)
     # end def
 
-    async def delete(self, conn: Connection):
+    async def delete(self, conn: Session):
         fetch_params = self.build_sql_delete()
         logger.debug(f'DELETE query for {self.__class__.__name__}: {fetch_params!r}')
         delete_status = await conn.execute(*fetch_params)
@@ -1970,7 +1969,7 @@ class _BaseFastORM(BaseModel):
     @classmethod
     async def create_table(
         cls,
-        conn: Connection,
+        conn: Session,
         if_not_exists: bool = False,
         psycopg2_conn: Union['psycopg2.extensions.connection', 'psycopg2.extensions.cursor', None] = None,
     ):
@@ -2014,7 +2013,7 @@ class _BaseFastORM(BaseModel):
             and a connection to the database must be provided.
             This can be either a psycopg2 connection (psycopg2_conn = psycopg2.connect(…)),
             a psycopg2 cursor.
-            If a asyncpg Connection is given we try to create a psycopg2 connection from it automatically.
+            If a asyncpg Session is given we try to create a psycopg2 connection from it automatically.
         :return:
         """
         assert issubclass(cls, BaseModel)  # because we no longer use typing.get_type_hints, but pydantic's `cls.__fields__`
@@ -2166,7 +2165,7 @@ class _BaseFastORM(BaseModel):
             )
         # end if
         try:
-            assert_type_or_raise(conn, Connection, psycopg2.extensions.connection, psycopg2.extensions.cursor, parameter_name='psycopg2_conn')
+            assert_type_or_raise(conn, Session, psycopg2.extensions.connection, psycopg2.extensions.cursor, parameter_name='psycopg2_conn')
         except TypeError:
             # enhance error message with useful information
             error_class = ValueError if conn is None else TypeError
@@ -2175,8 +2174,8 @@ class _BaseFastORM(BaseModel):
                 'a psycopg2 connection or cursor needs to be provided as the psycopg2_conn parameter.'
             )
         # end try
-        if isinstance(conn, Connection):
-            # if it's a asyncpg Connection, try to build the needed psycopg2 connection from it.
+        if isinstance(conn, Session):
+            # if it's a asyncpg Session, try to build the needed psycopg2 connection from it.
             # noinspection PyProtectedMember
             params = dict(
                 database=conn._params.database,  # aka dbname
@@ -2199,7 +2198,7 @@ class _BaseFastORM(BaseModel):
     @classmethod
     async def create_table_references(
         cls,
-        conn: Connection,
+        conn: Session,
     ):
         """
         Builds and executes a ALTER TABLE and CREATE TABLE statement.
@@ -2545,7 +2544,7 @@ class _BaseFastORM(BaseModel):
     }
 
     @classmethod
-    async def create_connection(cls, database_url) -> Connection:
+    async def create_connection(cls, database_url) -> Session:
         # https://magicstack.github.io/asyncpg/current/usage.html#example-automatic-json-conversion
         conn = await asyncpg.connect(database_url)
         return await cls._set_up_connection(conn=conn)
@@ -2558,7 +2557,7 @@ class _BaseFastORM(BaseModel):
     # end def
 
     @classmethod
-    async def _set_up_connection(cls, conn: Connection):
+    async def _set_up_connection(cls, conn: Session):
         """
         Sets up a connection to properly do datetime and json decoding.
 
